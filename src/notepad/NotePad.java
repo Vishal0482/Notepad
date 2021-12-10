@@ -7,11 +7,12 @@ import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.text.Element;
 
-public class NotePad extends JFrame implements ActionListener, WindowListener {
+public class NotePad extends JFrame implements ActionListener, WindowListener, ItemListener {
 	
 	private static final long serialVersionUID = 1L;
 	JTextArea jta = new JTextArea();
 	JTextArea line;
+	JCheckBox c,c1;
 	File fnameContainer;
 	JLabel label;
 
@@ -26,8 +27,10 @@ public class NotePad extends JFrame implements ActionListener, WindowListener {
 		JMenu jmfile = new JMenu("File");
 		JMenu jmedit = new JMenu("Edit");
 		JMenu jmformate = new JMenu("Formate");
+		JMenu jmview = new JMenu("View");
+		JMenu jmzoom = new JMenu("zoom");
 		JMenu jmhelp = new JMenu("Help");
-
+		
 		con.setLayout(new BorderLayout());
 		
 //		scroll bar
@@ -37,7 +40,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener {
 
 //		font and line wrap
 		jta.setFont(fnt);
-		jta.setLineWrap(true);
+//		jta.setLineWrap(true);
 		jta.setWrapStyleWord(true);
 		
 //		new text area(nested) for line numbers
@@ -96,14 +99,31 @@ public class NotePad extends JFrame implements ActionListener, WindowListener {
 		createMenuItem(jmedit, "Copy");
 		createMenuItem(jmedit, "Paste");
 		
-		createMenuItem(jmformate, "Word wrap");
+//		creating check box object and adding into format menu
+		c = new JCheckBox("Word wrap",true);
+		c.addItemListener(this);
+		jmformate.add(c);
+		
+		createMenuItem(jmformate, "Fonts..");
+		JMenuItem zoomIn = new JMenuItem("Zoom In");
+		JMenuItem zoomOut = new JMenuItem("Zoom Out");
+		JMenuItem zoomRestore = new JMenuItem("Restore Default Zoom");
+		jmzoom.add(zoomIn);
+		jmzoom.add(zoomOut);
+		jmzoom.add(zoomRestore);
+		jmview.add(jmzoom);
+		
+		c1 = new JCheckBox("Status Bar",true);
+		c1.addItemListener(this);
+		jmview.add(c1);
 
 		createMenuItem(jmhelp, "About Notepad");
-
+		
 //		adding menu item to the menu bar
 		jmb.add(jmfile);
 		jmb.add(jmedit);
 		jmb.add(jmformate);
+		jmb.add(jmview);
 		jmb.add(jmhelp);
 
 		setJMenuBar(jmb);
@@ -194,17 +214,6 @@ public class NotePad extends JFrame implements ActionListener, WindowListener {
 		else if(e.getActionCommand().equals("Cut")) {
 			jta.cut();	
 		}	
-//		else if(e.getActionCommand().equals("Word wrap")) {
-//			boolean wrapBool = true;
-//			if(wrapBool == true){
-//				jta.setLineWrap(false);		
-//				wrapBool = false;
-//			}
-//			else if(wrapBool == false) {
-//				jta.setLineWrap(true);
-//				wrapBool = true;
-//			}
-//		}	
 		else if(e.getActionCommand().equals("About Notepad")) {
 			JOptionPane.showMessageDialog(this,"Created by vishal parmar","Notepad", JOptionPane.INFORMATION_MESSAGE);
 		}
@@ -276,5 +285,26 @@ public class NotePad extends JFrame implements ActionListener, WindowListener {
 	public void windowDeactivated(WindowEvent e) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getSource() == c) {
+			if(e.getStateChange() == 1 ) {
+				jta.setLineWrap(true);
+			}
+			else {
+				jta.setLineWrap(false);
+			}	
+		}
+		else {
+			if(e.getStateChange() == 1 ) {
+				label.setVisible(true);
+			}
+			else {
+				label.setVisible(false);
+			}	
+		}
 	}
 }
