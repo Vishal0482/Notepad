@@ -7,7 +7,7 @@ import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.text.Element;
 
-public class NotePad extends JFrame implements ActionListener, WindowListener, ItemListener {
+public class NotePad extends JFrame implements ActionListener, WindowListener, ItemListener, ListSelectionListener {
 	
 	private static final long serialVersionUID = 1L;
 	JTextArea jta = new JTextArea();
@@ -15,6 +15,8 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	JCheckBox c,c1;
 	File fnameContainer;
 	JLabel label;
+	Frame frame = new Frame();
+	JList styleList;
 
 	NotePad() {
 		Font fnt = new Font("Arial", Font.PLAIN, 15);
@@ -162,15 +164,36 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		jm.add(jmi);
 	}
 	
+	JFileChooser jfc = new JFileChooser();
+	public void saveChanges() {
+		if(fnameContainer!= null) {
+			jfc.setCurrentDirectory(fnameContainer);
+			jfc.setSelectedFile(fnameContainer);
+		}
+		else {
+			jfc.setSelectedFile(new File("Untitled.txt"));
+		}
+		
+		int ret = jfc.showSaveDialog(null);
+		if(ret == JFileChooser.APPROVE_OPTION) {
+			try {
+				File fyl = jfc.getSelectedFile();
+				saveFile(fyl.getAbsolutePath());
+				this.setTitle(fyl.getName()+" - Notepad");
+				fnameContainer = fyl;
+			}
+			catch(Exception ets) {}	
+		}
+	}
 //	event handler
 	public void actionPerformed(ActionEvent e) {
-		JFileChooser jfc = new JFileChooser();
 		if(e.getActionCommand().equals("New")) {
 			this.setTitle("Untitled.txt - Notepad");
 			jta.setText("");
 			fnameContainer = null;	
 		}
 		else if(e.getActionCommand().equals("Open")) {
+			DialogBox();
 			int ret = jfc.showDialog(null,"Open");
 			if(ret==JFileChooser.APPROVE_OPTION) {
 				try{
@@ -183,24 +206,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 			}
 		}
 		else if(e.getActionCommand().equals("Save")) {
-			if(fnameContainer!= null) {
-				jfc.setCurrentDirectory(fnameContainer);
-				jfc.setSelectedFile(fnameContainer);
-			}
-			else {
-				jfc.setSelectedFile(new File("Untitled.txt"));
-			}
-			
-			int ret = jfc.showSaveDialog(null);
-			if(ret == JFileChooser.APPROVE_OPTION) {
-				try {
-					File fyl = jfc.getSelectedFile();
-					saveFile(fyl.getAbsolutePath());
-					this.setTitle(fyl.getName()+" - Notepad");
-					fnameContainer = fyl;
-				}
-				catch(Exception ets) {}	
-			}
+			saveChanges();
 		}
 		else if(e.getActionCommand().equals("Exit")) {
 			Exiting();
@@ -213,6 +219,18 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		}
 		else if(e.getActionCommand().equals("Cut")) {
 			jta.cut();	
+		}	
+		else if(e.getActionCommand().equals("Fonts..")) {
+			JDialog fontDialog = new JDialog(frame,"Fonts");
+			fontDialog.setSize(400,400);
+			
+			JLabel fontStyle = new JLabel("Font Style:");
+			fontDialog.add(fontStyle);
+			String style[] = {"Regular", "Bold", "Italic"};
+			styleList = new JList(style);
+			fontDialog.add(styleList);
+			styleList.addListSelectionListener(this);
+			fontDialog.setVisible(true);
 		}	
 		else if(e.getActionCommand().equals("About Notepad")) {
 			JOptionPane.showMessageDialog(this,"Created by vishal parmar","Notepad", JOptionPane.INFORMATION_MESSAGE);
@@ -244,7 +262,6 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	@Override
 	public void windowOpened(WindowEvent e) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -252,9 +269,23 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		// TODO Auto-generated method stub
 		Exiting();
 	}
+	int a;
+	public void DialogBox() {
+		a = JOptionPane.showConfirmDialog(jta, "Do yo want to save changes to Untitled?");
+	}
 	
 	public void Exiting() {
-		System.exit(0);  
+		DialogBox();
+		if(a==JOptionPane.YES_OPTION) {
+			saveChanges();
+			System.exit(0);
+		}
+		else if(a==JOptionPane.NO_OPTION) {
+			System.exit(0);
+		}
+		else if(a==JOptionPane.CANCEL_OPTION) {
+			
+		}
 	}
 
 	@Override
@@ -290,14 +321,16 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		// TODO Auto-generated method stub
+//		condition for word wrap
 		if(e.getSource() == c) {
 			if(e.getStateChange() == 1 ) {
 				jta.setLineWrap(true);
 			}
 			else {
 				jta.setLineWrap(false);
-			}	
+			}
 		}
+//		condition for status bar visibility toggle
 		else {
 			if(e.getStateChange() == 1 ) {
 				label.setVisible(true);
@@ -305,6 +338,20 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 			else {
 				label.setVisible(false);
 			}	
+		}
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		// TODO Auto-generated method stub
+		if(styleList.getSelectedValue().equals("Bold")) {
+			jta.setFont(new Font("Arial",Font.BOLD,15));
+		}
+		if(styleList.getSelectedValue().equals("Regular")) {
+			jta.setFont(new Font("Arial",Font.PLAIN,15));
+		}
+		if(styleList.getSelectedValue().equals("Italic")) {
+			jta.setFont(new Font("Arial",Font.ITALIC,15));
 		}
 	}
 }
