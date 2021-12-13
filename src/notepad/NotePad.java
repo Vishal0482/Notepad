@@ -16,7 +16,8 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	File fnameContainer;
 	JLabel label;
 	Frame frame = new Frame();
-	JList styleList;
+	JList<String> styleList,fontList;
+	JDialog fontDialog;
 
 	NotePad() {
 		Font fnt = new Font("Arial", Font.PLAIN, 15);
@@ -133,6 +134,42 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		label = new JLabel("||       Ln 1, Col 1           ",JLabel.RIGHT);
 		con.add(label,BorderLayout.SOUTH);
 		
+//		Font style dialog box
+		fontDialog = new JDialog(frame,"Fonts");
+		fontDialog.setSize(400,650);
+		
+		JPanel jp = new JPanel(new GridLayout(1,2));
+		
+		JPanel jpStyle = new JPanel(new GridLayout(2,1));
+		JLabel fontStyle = new JLabel("Font Style:");
+		jpStyle.add(fontStyle);
+		String style[] = {"Regular", "Bold", "Italic"};
+		styleList = new JList<String>(style);
+		styleList.setSelectedIndex(0);
+		jpStyle.add(styleList);
+//		fontDialog.add(jpStyle);
+		jp.add(jpStyle);
+		styleList.addListSelectionListener(this);
+		
+		JPanel jpSize = new JPanel(new GridLayout(2,1));
+		JLabel fontSize = new JLabel("Font Size:");
+		jpSize.add(fontSize);
+		String size[] = {"8","9","10","11","12","14","16","18","20","22","24","26","28","36","48","72"};
+		fontList = new JList<String>(size);
+		fontList.setSelectedIndex(4);
+	
+		JScrollPane fontScroll = new JScrollPane(jpSize);
+		fontScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		fontScroll.setVisible(true);
+
+		jpSize.add(fontSize);
+		jpSize.add(fontList);
+//		fontDialog.add(jpSize);
+		jp.add(jpSize);
+		fontList.addListSelectionListener(this);
+		
+		fontDialog.add(jp);
+		
 //		line and column number counter
 		jta.addCaretListener(new CaretListener() {  
 			public void caretUpdate(CaretEvent e)  {  
@@ -221,15 +258,6 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 			jta.cut();	
 		}	
 		else if(e.getActionCommand().equals("Fonts..")) {
-			JDialog fontDialog = new JDialog(frame,"Fonts");
-			fontDialog.setSize(400,400);
-			
-			JLabel fontStyle = new JLabel("Font Style:");
-			fontDialog.add(fontStyle);
-			String style[] = {"Regular", "Bold", "Italic"};
-			styleList = new JList(style);
-			fontDialog.add(styleList);
-			styleList.addListSelectionListener(this);
 			fontDialog.setVisible(true);
 		}	
 		else if(e.getActionCommand().equals("About Notepad")) {
@@ -344,14 +372,19 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
 		// TODO Auto-generated method stub
+		int ss = fontList.getSelectedIndex();
+		int size[] = {8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72};
 		if(styleList.getSelectedValue().equals("Bold")) {
-			jta.setFont(new Font("Arial",Font.BOLD,15));
+			jta.setFont(new Font("Arial",Font.BOLD,size[ss]));
+			line.setFont(new Font("Arial",Font.BOLD,size[ss]));
 		}
 		if(styleList.getSelectedValue().equals("Regular")) {
-			jta.setFont(new Font("Arial",Font.PLAIN,15));
+			jta.setFont(new Font("Arial",Font.PLAIN,size[ss]));
+			line.setFont(new Font("Arial",Font.BOLD,size[ss]));
 		}
 		if(styleList.getSelectedValue().equals("Italic")) {
-			jta.setFont(new Font("Arial",Font.ITALIC,15));
+			jta.setFont(new Font("Arial",Font.ITALIC,size[ss]));
+			line.setFont(new Font("Arial",Font.BOLD,size[ss]));
 		}
 	}
 }
