@@ -4,6 +4,8 @@ import java.io.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.print.PrinterException;
+
 import javax.swing.event.*;
 import javax.swing.text.Element;
 
@@ -96,11 +98,16 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		createMenuItem(jmfile, "Open");
 		createMenuItem(jmfile, "Save");
 		jmfile.addSeparator();
+		createMenuItem(jmfile, "Print...");
+		jmfile.addSeparator();
 		createMenuItem(jmfile, "Exit");
 
 		createMenuItem(jmedit, "Cut");
 		createMenuItem(jmedit, "Copy");
 		createMenuItem(jmedit, "Paste");
+		createMenuItem(jmedit, "Delete");
+		jmedit.addSeparator();
+		createMenuItem(jmedit, "Select All");
 		
 //		creating check box object and adding into format menu
 		c = new JCheckBox("Word wrap",true);
@@ -245,6 +252,14 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		else if(e.getActionCommand().equals("Save")) {
 			saveChanges();
 		}
+		else if(e.getActionCommand().equals("Print...")) {
+			try {
+				jta.print();
+			} catch (PrinterException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
 		else if(e.getActionCommand().equals("Exit")) {
 			Exiting();
 		}
@@ -256,6 +271,12 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		}
 		else if(e.getActionCommand().equals("Cut")) {
 			jta.cut();	
+		}	
+		else if(e.getActionCommand().equals("Delete")) {
+			jta.replaceSelection("");
+		}	
+		else if(e.getActionCommand().equals("Select All")) {
+			jta.selectAll();
 		}	
 		else if(e.getActionCommand().equals("Fonts..")) {
 			fontDialog.setVisible(true);
