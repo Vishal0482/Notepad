@@ -107,6 +107,9 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		createMenuItem(jmedit, "Paste");
 		createMenuItem(jmedit, "Delete");
 		jmedit.addSeparator();
+		createMenuItem(jmedit, "Find");
+		createMenuItem(jmedit, "Replace");
+		jmedit.addSeparator();
 		createMenuItem(jmedit, "Select All");
 		
 //		creating check box object and adding into format menu
@@ -274,6 +277,36 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		}	
 		else if(e.getActionCommand().equals("Delete")) {
 			jta.replaceSelection("");
+		}	
+		else if(e.getActionCommand().equals("Find")) {
+			String findText = JOptionPane.showInputDialog(this,"Find What:");
+			String text = jta.getText();
+			System.out.print(text);
+			int index = text.indexOf(findText);
+			jta.select(index,findText.length());
+		}	
+		else if(e.getActionCommand().equals("Replace")) {
+			
+			JPanel panel = new JPanel();
+			JTextField findText1 = new JTextField(5);
+			JTextField replaceText1 = new JTextField(5);
+			
+			panel.add(new JLabel("Find"));
+			panel.add(findText1);
+			panel.add(Box.createHorizontalStrut(15));
+			panel.add(new JLabel("Replace"));
+			panel.add(replaceText1);
+			
+			JOptionPane.showConfirmDialog(null,panel,"Replace",JOptionPane.INFORMATION_MESSAGE);
+			
+			String replaceText = replaceText1.getText();
+			String findText = findText1.getText();
+			String text = jta.getText();
+			int index = text.indexOf(findText);
+			jta.select(index,findText.length());
+			if(index != 0) {
+				jta.replaceSelection(replaceText);
+			}
 		}	
 		else if(e.getActionCommand().equals("Select All")) {
 			jta.selectAll();
