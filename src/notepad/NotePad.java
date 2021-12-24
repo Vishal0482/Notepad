@@ -1,7 +1,10 @@
 package notepad;
 
 import java.io.*;
+import java.util.Calendar;
+
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.print.PrinterException;
@@ -9,7 +12,7 @@ import java.awt.print.PrinterException;
 import javax.swing.event.*;
 import javax.swing.text.Element;
 
-public class NotePad extends JFrame implements ActionListener, WindowListener, ItemListener, ListSelectionListener {
+public class NotePad extends JFrame implements ActionListener, WindowListener, ItemListener, ListSelectionListener, KeyListener {
 	
 	private static final long serialVersionUID = 1L;
 	JTextArea jta = new JTextArea();
@@ -20,13 +23,14 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	Frame frame = new Frame();
 	JList<String> styleList,fontList,sizeList;
 	JDialog fontDialog;
+	JMenuBar jmb;
 
 	NotePad() {
 		Font fnt = new Font("Arial", Font.PLAIN, 15);
 		Container con = getContentPane();
 		
 //		Menu bar
-		JMenuBar jmb = new JMenuBar();
+		jmb = new JMenuBar();
 		
 //		Menu list
 		JMenu jmfile = new JMenu("File");
@@ -34,7 +38,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		JMenu jmformate = new JMenu("Formate");
 		JMenu jmview = new JMenu("View");
 		JMenu jmzoom = new JMenu("zoom");
-		JMenu jmhelp = new JMenu("Help");
+		JMenu jmhelp = new JMenu("Help");		
 		
 		con.setLayout(new BorderLayout());
 		
@@ -111,6 +115,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		createMenuItem(jmedit, "Replace");
 		jmedit.addSeparator();
 		createMenuItem(jmedit, "Select All");
+		createMenuItem(jmedit, "Time/Date");
 		
 //		creating check box object and adding into format menu
 		c = new JCheckBox("Word wrap",true);
@@ -146,21 +151,26 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		
 //		Font style dialog box
 		fontDialog = new JDialog(frame,"Fonts");
-		fontDialog.setSize(400,650);
+		fontDialog.setSize(400,400);
 		
-		JPanel jp = new JPanel(new GridLayout(1,3));
+		JPanel jp = new JPanel();
 		
-		JPanel jpfont = new JPanel(new GridLayout(2,1));
-		JLabel fontLabel = new JLabel("Fonts");
+		JPanel jpfont = new JPanel();
+		JLabel fontLabel = new JLabel("Fonts: ");
 		jpfont.add(fontLabel);
-		String fonts[] = {"Arial","Calibri","Cambria","Consolas","Courier","Georgia","Terminal","Times New Roman"};
+		String fonts[] = {"Arial","Calibri","Cambria","Consolas","Courier","Georgia","Microsoft Sans Serif","Noto Sans","Liberation Sans","Roman","Segoe Print","Segoe UI","Terminal","Times New Roman"};
 		fontList = new JList<String>(fonts);
 		fontList.setSelectedIndex(0);
-		jpfont.add(fontList);
+		
+		JScrollPane fontsScroll = new JScrollPane();
+		fontsScroll.setViewportView(fontList);
+		fontList.setLayoutOrientation(JList.VERTICAL);
+		jpfont.add(fontsScroll);
+		
 		jp.add(jpfont);
 		fontList.addListSelectionListener(this);
 		
-		JPanel jpStyle = new JPanel(new GridLayout(2,1));
+		JPanel jpStyle = new JPanel();
 		JLabel fontStyle = new JLabel("Font Style:");
 		jpStyle.add(fontStyle);
 		String style[] = {"Regular", "Bold", "Italic"};
@@ -170,18 +180,18 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		jp.add(jpStyle);
 		styleList.addListSelectionListener(this);
 		
-		JPanel jpSize = new JPanel(new GridLayout(2,1));
+		JPanel jpSize = new JPanel();
 		JLabel fontSize = new JLabel("Font Size:");
 		jpSize.add(fontSize);
 		String size[] = {"8","9","10","11","12","14","16","18","20","22","24","26","28","36","48","72"};
 		sizeList = new JList<String>(size);
 		sizeList.setSelectedIndex(4);
 	
-//		JScrollPane fontScroll = new JScrollPane(jpSize);
-//		fontScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-//		fontScroll.setVisible(true);
+		JScrollPane fontScroll = new JScrollPane();
+		fontScroll.setViewportView(sizeList);
+		sizeList.setLayoutOrientation(JList.VERTICAL);
+		jpSize.add(fontScroll);
 
-		jpSize.add(sizeList);
 		jp.add(jpSize);
 		sizeList.addListSelectionListener(this);
 		
@@ -215,7 +225,10 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	public void createMenuItem(JMenu jm, String txt) {
 		JMenuItem jmi = new JMenuItem(txt);
 		jmi.addActionListener(this);
-		jm.add(jmi);
+		if(txt.equals("Save")) {
+			jmi.addKeyListener(this);
+		}
+		jm.add(jmi);	
 	}
 	
 	JFileChooser jfc = new JFileChooser();
@@ -317,6 +330,16 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		}	
 		else if(e.getActionCommand().equals("Select All")) {
 			jta.selectAll();
+		}	
+		else if(e.getActionCommand().equals("Time/Date")) {
+//			long mTime = System.currentTimeMillis();
+//			System.out.print((int)(mTime/(1000*60*60))%24 + ": " + (int)(mTime/(1000*60))%60 + ":" + (int)(mTime/1000)%60);
+			
+			System.out.print(Calendar.MONTH);
+			System.out.print(Calendar.YEAR);
+			System.out.print(Calendar.DAY_OF_MONTH);
+			System.out.print(Calendar.AM_PM + Calendar.HOUR);
+		
 		}	
 		else if(e.getActionCommand().equals("Fonts..")) {
 			fontDialog.setVisible(true);
@@ -420,7 +443,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 			}
 		}
 //		condition for status bar visibility toggle
-		else {
+		else if(e.getSource() == c1){
 			if(e.getStateChange() == 1 ) {
 				label.setVisible(true);
 			}
@@ -437,7 +460,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		int size[] = {8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72};
 		
 		int ff = fontList.getSelectedIndex();
-		String fonts[] = {"Arial","Calibri","Cambria","Consolas","Courier","Georgia","Terminal","Times New Roman"};
+		String fonts[] = {"Arial","Calibri","Cambria","Consolas","Courier","Georgia","Microsoft Sans Serif","Noto Sans","Liberation Sans","Roman","Segoe Print","Segoe UI","Terminal","Times New Roman"};
 		
 		if(styleList.getSelectedValue().equals("Bold")) {
 			jta.setFont(new Font(fonts[ff],Font.BOLD,size[ss]));
@@ -451,5 +474,27 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 			jta.setFont(new Font(fonts[ff],Font.ITALIC,size[ss]));
 			line.setFont(new Font(fonts[ff],Font.BOLD,size[ss]));
 		}
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		// TODO Auto-generated method stub
+//		if(e.getKeyCode() == KeyEvent.VK_CONTROL) {
+//			if(e.getKeyCode() == KeyEvent.VK_S){
+//				saveChanges();
+//			}
+//		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 }
