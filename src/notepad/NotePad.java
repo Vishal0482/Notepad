@@ -1,7 +1,8 @@
 package notepad;
 
 import java.io.*;
-import java.util.Calendar;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 
 import javax.swing.*;
 
@@ -17,7 +18,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	private static final long serialVersionUID = 1L;
 	JTextArea jta = new JTextArea();
 	JTextArea line;
-	JCheckBox c,c1;
+	JCheckBox c,c1,c2;
 	File fnameContainer;
 	JLabel label;
 	Frame frame = new Frame();
@@ -99,8 +100,10 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 
 //		creating menu item for individual menus using createMenuItem method
 		createMenuItem(jmfile, "New");
+		createMenuItem(jmfile, "New Window");
 		createMenuItem(jmfile, "Open");
 		createMenuItem(jmfile, "Save");
+		createMenuItem(jmfile, "Save As");
 		jmfile.addSeparator();
 		createMenuItem(jmfile, "Print...");
 		jmfile.addSeparator();
@@ -134,6 +137,10 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		c1 = new JCheckBox("Status Bar",true);
 		c1.addItemListener(this);
 		jmview.add(c1);
+		
+		c2 = new JCheckBox("Line Number",true);
+		c2.addItemListener(this);
+		jmview.add(c2);
 
 		createMenuItem(jmhelp, "About Notepad");
 		
@@ -252,12 +259,24 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 			catch(Exception ets) {}	
 		}
 	}
+	void newFile() {
+		this.setTitle("Untitled.txt - Notepad");
+		jta.setText("");
+		fnameContainer = null;	
+	}
 //	event handler
 	public void actionPerformed(ActionEvent e) {
 		if(e.getActionCommand().equals("New")) {
-			this.setTitle("Untitled.txt - Notepad");
-			jta.setText("");
-			fnameContainer = null;	
+			if(jta.getText().equals("")) {
+				newFile();
+			}
+			else {
+				saveChanges();
+				newFile();
+			}
+		}
+		else if(e.getActionCommand().equals("New Window")){
+			NotePad notepad = new NotePad();
 		}
 		else if(e.getActionCommand().equals("Open")) {
 			DialogBox();
@@ -273,6 +292,9 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 			}
 		}
 		else if(e.getActionCommand().equals("Save")) {
+			saveChanges();
+		}
+		else if(e.getActionCommand().equals("Save As")) {
 			saveChanges();
 		}
 		else if(e.getActionCommand().equals("Print...")) {
@@ -332,13 +354,9 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 			jta.selectAll();
 		}	
 		else if(e.getActionCommand().equals("Time/Date")) {
-//			long mTime = System.currentTimeMillis();
-//			System.out.print((int)(mTime/(1000*60*60))%24 + ": " + (int)(mTime/(1000*60))%60 + ":" + (int)(mTime/1000)%60);
-			
-			System.out.print(Calendar.MONTH);
-			System.out.print(Calendar.YEAR);
-			System.out.print(Calendar.DAY_OF_MONTH);
-			System.out.print(Calendar.AM_PM + Calendar.HOUR);
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm a dd/MM/yyyy");
+			String dateTime = dtf.format(LocalDateTime.now());
+			jta.insert(dateTime, jta.getCaretPosition());
 		
 		}	
 		else if(e.getActionCommand().equals("Fonts..")) {
@@ -449,6 +467,15 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 			}
 			else {
 				label.setVisible(false);
+			}	
+		}
+//		Condition for line number toggle
+		else if(e.getSource() == c2){
+			if(e.getStateChange() == 1 ) {
+				line.setVisible(true);
+			}
+			else {
+				line.setVisible(false);
 			}	
 		}
 	}
