@@ -12,6 +12,7 @@ import java.awt.print.PrinterException;
 
 import javax.swing.event.*;
 import javax.swing.text.Element;
+import javax.swing.undo.UndoManager;
 
 public class NotePad extends JFrame implements ActionListener, WindowListener, ItemListener, ListSelectionListener, KeyListener {
 	
@@ -25,6 +26,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	JList<String> styleList,fontList,sizeList;
 	JDialog fontDialog;
 	JMenuBar jmb;
+	UndoManager uManager = new UndoManager();
 
 	NotePad() {
 		Font fnt = new Font("Arial", Font.PLAIN, 15);
@@ -108,7 +110,10 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		createMenuItem(jmfile, "Print...");
 		jmfile.addSeparator();
 		createMenuItem(jmfile, "Exit");
-
+		
+		createMenuItem(jmedit, "Undo");
+		createMenuItem(jmedit, "Redo");
+		jmedit.addSeparator();
 		createMenuItem(jmedit, "Cut");
 		createMenuItem(jmedit, "Copy");
 		createMenuItem(jmedit, "Paste");
@@ -232,14 +237,32 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	public void createMenuItem(JMenu jm, String txt) {
 		JMenuItem jmi = new JMenuItem(txt);
 		jmi.addActionListener(this);
-		if(txt.equals("Save")) {
-			jmi.addKeyListener(this);
-		}
 		jm.add(jmi);	
 	}
 	
 	JFileChooser jfc = new JFileChooser();
 	public void saveChanges() {
+		System.out.print(fnameContainer);
+		if(fnameContainer!= null) {
+			jfc.setCurrentDirectory(fnameContainer);
+			jfc.setSelectedFile(fnameContainer);
+		}
+		else {
+			jfc.setSelectedFile(new File("Untitled.txt"));
+		}
+		
+		int ret = jfc.showSaveDialog(null);
+		if(ret == JFileChooser.APPROVE_OPTION) {
+			try {
+				File fyl = jfc.getSelectedFile();
+				saveFile(fyl.getAbsolutePath());
+				this.setTitle(fyl.getName()+" - Notepad");
+				fnameContainer = fyl;
+			}
+			catch(Exception ets) {}	
+		}
+	}
+	public void saveAs() {
 		if(fnameContainer!= null) {
 			jfc.setCurrentDirectory(fnameContainer);
 			jfc.setSelectedFile(fnameContainer);
@@ -276,10 +299,14 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 			}
 		}
 		else if(e.getActionCommand().equals("New Window")){
-			NotePad notepad = new NotePad();
+			newWindow runnable = new newWindow();
+			Thread thread1 = new Thread(runnable);
+			thread1.start();
 		}
 		else if(e.getActionCommand().equals("Open")) {
-			DialogBox();
+			if(!jta.getText().equals("")) {
+				DialogBox();
+			}
 			int ret = jfc.showDialog(null,"Open");
 			if(ret==JFileChooser.APPROVE_OPTION) {
 				try{
@@ -295,7 +322,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 			saveChanges();
 		}
 		else if(e.getActionCommand().equals("Save As")) {
-			saveChanges();
+			saveAs();
 		}
 		else if(e.getActionCommand().equals("Print...")) {
 			try {
@@ -307,6 +334,30 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		}
 		else if(e.getActionCommand().equals("Exit")) {
 			Exiting();
+		}
+		else if(e.getActionCommand().equals("Undo")) {
+			try {
+				uManager.undo();
+			}catch (Exception e1) {
+			}
+			
+			jta.getDocument().addUndoableEditListener(new UndoableEditListener() {
+				public void undoableEditHappened(UndoableEditEvent e) {
+					uManager.addEdit(e.getEdit());
+				}
+			});
+		}
+		else if(e.getActionCommand().equals("Redo")) {
+			try {
+				uManager.redo();
+			}catch (Exception e1) {
+			}
+			
+			jta.getDocument().addUndoableEditListener(new UndoableEditListener() {
+				public void undoableEditHappened(UndoableEditEvent e) {
+					uManager.addEdit(e.getEdit());
+				}
+			});
 		}
 		else if(e.getActionCommand().equals("Copy")) {
 			jta.copy();
