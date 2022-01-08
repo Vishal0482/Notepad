@@ -14,7 +14,7 @@ import javax.swing.event.*;
 import javax.swing.text.Element;
 import javax.swing.undo.UndoManager;
 
-public class NotePad extends JFrame implements ActionListener, WindowListener, ItemListener, ListSelectionListener, KeyListener {
+public class NotePad extends JFrame implements ActionListener, DocumentListener, CaretListener, WindowListener, ItemListener, ListSelectionListener{
 	
 	private static final long serialVersionUID = 1L;
 	JTextArea jta = new JTextArea();
@@ -64,36 +64,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		line.setEditable(false);
 		
 //		line number printer
-		jta.getDocument().addDocumentListener(new DocumentListener() {
-			public String getText() {
-	            int caretPosition = jta.getDocument().getLength();
-	            Element root = jta.getDocument().getDefaultRootElement();
-	            String text = "1" + System.getProperty("line.separator");
-	               for(int i = 2; i < root.getElementIndex(caretPosition) + 2; i++) {
-	                  text += i + System.getProperty("line.separator");
-	               }
-	            return text;
-	         }
-
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				// TODO Auto-generated method stub
-				line.setText(getText());
-			}
-
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				// TODO Auto-generated method stub
-				line.setText(getText());
-			}
-
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				// TODO Auto-generated method stub
-				line.setText(getText());
-			}
-	         
-		});
+		jta.getDocument().addDocumentListener(this);
 		
 //		adding scroll bar to container
 		con.add(sbrText);
@@ -210,21 +181,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		fontDialog.add(jp);
 		
 //		line and column number counter
-		jta.addCaretListener(new CaretListener() {  
-			public void caretUpdate(CaretEvent e)  {  
-				int lineNumber=0, column=0, pos=0;  
-				  try {  
-					pos=jta.getCaretPosition();  
-					lineNumber=jta.getLineOfOffset(pos);  
-					column=pos-jta.getLineStartOffset(lineNumber);  
-				}
-				catch(Exception excp){}  
-				if(jta.getText().length()==0){
-					lineNumber=0; column=0;
-				}  
-				label.setText("||       Ln "+(lineNumber+1)+", Col "+(column+1)+"           ");  
-			}  
-		});  
+		jta.addCaretListener(this);  
 		
 		setIconImage(Toolkit.getDefaultToolkit().getImage("Notepad.gif"));
 		addWindowListener(this);
@@ -237,6 +194,48 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	public void createMenuItem(JMenu jm, String txt) {
 		JMenuItem jmi = new JMenuItem(txt);
 		jmi.addActionListener(this);
+		if(txt.equals("New")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+		}
+		else if(txt.equals("New Window")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
+		}
+		else if(txt.equals("Open")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+		}
+		else if(txt.equals("Save")){
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+		}
+		else if(txt.equals("Save As")){
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
+		}
+		else if(txt.equals("Print...")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, ActionEvent.CTRL_MASK));
+		}
+		else if(txt.equals("Undo")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
+		}
+		else if(txt.equals("Redo")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK));
+		}
+		else if(txt.equals("Cut")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));
+		}
+		else if(txt.equals("Copy")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
+		}
+		else if(txt.equals("Paste")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK));
+		}
+		else if(txt.equals("Find")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK));
+		}
+		else if(txt.equals("Replace")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, ActionEvent.CTRL_MASK));
+		}
+		else if(txt.equals("Select All")) {
+			jmi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK));
+		}
 		jm.add(jmi);	
 	}
 	
@@ -456,15 +455,21 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	}
 	
 	public void Exiting() {
-		DialogBox();
-		if(a==JOptionPane.YES_OPTION) {
-			saveChanges();
-			System.exit(0);
-		}
-		else if(a==JOptionPane.NO_OPTION) {
-			System.exit(0);
-		}
-		else if(a==JOptionPane.CANCEL_OPTION) {
+		if(!jta.getText().equals("")) {
+			DialogBox();
+			if(a==JOptionPane.YES_OPTION) {
+				saveChanges();
+				System.exit(0);
+			}
+			else if(a==JOptionPane.NO_OPTION) {
+				System.exit(0);
+			}
+			else if(a==JOptionPane.CANCEL_OPTION) {
+				
+			}
+			else if(a==JOptionPane.CLOSED_OPTION ) {
+				
+			}
 			
 		}
 	}
@@ -472,7 +477,7 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	@Override
 	public void windowClosed(WindowEvent e) {
 		// TODO Auto-generated method stub
-		
+		Exiting();
 	}
 
 	@Override
@@ -497,6 +502,48 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 	public void windowDeactivated(WindowEvent e) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public void caretUpdate(CaretEvent e)  {  
+		int lineNumber=0, column=0, pos=0;  
+		  try {  
+			pos=jta.getCaretPosition();  
+			lineNumber=jta.getLineOfOffset(pos);  
+			column=pos-jta.getLineStartOffset(lineNumber);  
+		}
+		catch(Exception excp){}  
+		if(jta.getText().length()==0){
+			lineNumber=0; column=0;
+		}  
+		label.setText("||       Ln "+(lineNumber+1)+", Col "+(column+1)+"           ");  
+	}
+	
+	public String getText() {
+        int caretPosition = jta.getDocument().getLength();
+        Element root = jta.getDocument().getDefaultRootElement();
+        String text = "1" + System.getProperty("line.separator");
+           for(int i = 2; i < root.getElementIndex(caretPosition) + 2; i++) {
+              text += i + System.getProperty("line.separator");
+           }
+        return text;
+     }
+
+	@Override
+	public void insertUpdate(DocumentEvent e) {
+		// TODO Auto-generated method stub
+		line.setText(getText());
+	}
+
+	@Override
+	public void removeUpdate(DocumentEvent e) {
+		// TODO Auto-generated method stub
+		line.setText(getText());
+	}
+
+	@Override
+	public void changedUpdate(DocumentEvent e) {
+		// TODO Auto-generated method stub
+		line.setText(getText());
 	}
 
 	@Override
@@ -554,25 +601,4 @@ public class NotePad extends JFrame implements ActionListener, WindowListener, I
 		}
 	}
 
-	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		// TODO Auto-generated method stub
-//		if(e.getKeyCode() == KeyEvent.VK_CONTROL) {
-//			if(e.getKeyCode() == KeyEvent.VK_S){
-//				saveChanges();
-//			}
-//		}
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
 }
