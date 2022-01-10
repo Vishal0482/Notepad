@@ -3,6 +3,7 @@ package notepad;
 import java.io.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.Vector;
 
 import javax.swing.*;
 
@@ -25,6 +26,8 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 	Frame frame = new Frame();
 	JList<String> styleList,fontList,sizeList;
 	JDialog fontDialog;
+	JButton okButton, cancelButton;
+	JTextField sampleTextField;
 	JMenuBar jmb;
 	UndoManager uManager = new UndoManager();
 
@@ -136,36 +139,30 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 		fontDialog = new JDialog(frame,"Fonts");
 		fontDialog.setSize(400,400);
 		
-		JPanel jp = new JPanel();
-		
-		JPanel jpfont = new JPanel();
 		JLabel fontLabel = new JLabel("Fonts: ");
-		jpfont.add(fontLabel);
-		String fonts[] = {"Arial","Calibri","Cambria","Consolas","Courier","Georgia","Microsoft Sans Serif","Noto Sans","Liberation Sans","Roman","Segoe Print","Segoe UI","Terminal","Times New Roman"};
+
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		Font allFonts[] = ge.getAllFonts();
+		Vector<String> fonts = new Vector<String>();
+		for(int i=0; i<allFonts.length ;i++) {
+			fonts.addElement(allFonts[i].getName());
+		}
+		
 		fontList = new JList<String>(fonts);
 		fontList.setSelectedIndex(0);
 		
 		JScrollPane fontsScroll = new JScrollPane();
 		fontsScroll.setViewportView(fontList);
 		fontList.setLayoutOrientation(JList.VERTICAL);
-		jpfont.add(fontsScroll);
-		
-		jp.add(jpfont);
 		fontList.addListSelectionListener(this);
 		
-		JPanel jpStyle = new JPanel();
 		JLabel fontStyle = new JLabel("Font Style:");
-		jpStyle.add(fontStyle);
 		String style[] = {"Regular", "Bold", "Italic"};
 		styleList = new JList<String>(style);
 		styleList.setSelectedIndex(0);
-		jpStyle.add(styleList);
-		jp.add(jpStyle);
 		styleList.addListSelectionListener(this);
 		
-		JPanel jpSize = new JPanel();
 		JLabel fontSize = new JLabel("Font Size:");
-		jpSize.add(fontSize);
 		String size[] = {"8","9","10","11","12","14","16","18","20","22","24","26","28","36","48","72"};
 		sizeList = new JList<String>(size);
 		sizeList.setSelectedIndex(4);
@@ -173,12 +170,87 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 		JScrollPane fontScroll = new JScrollPane();
 		fontScroll.setViewportView(sizeList);
 		sizeList.setLayoutOrientation(JList.VERTICAL);
-		jpSize.add(fontScroll);
-
-		jp.add(jpSize);
 		sizeList.addListSelectionListener(this);
 		
-		fontDialog.add(jp);
+		Box nameBox = Box.createVerticalBox();
+		nameBox.add(Box.createVerticalStrut(10));
+		nameBox.add(fontLabel);
+		nameBox.add(fontsScroll);
+		nameBox.add(Box.createVerticalStrut(10));
+		
+		Box styleBox = Box.createVerticalBox();
+		styleBox.add(Box.createVerticalStrut(10));
+		styleBox.add(fontStyle);
+		styleBox.add(styleList);
+		styleBox.add(Box.createVerticalStrut(10));
+		
+		Box sizeBox = Box.createVerticalBox();
+		sizeBox.add(Box.createVerticalStrut(10));
+		sizeBox.add(fontSize);
+		sizeBox.add(fontScroll);
+		sizeBox.add(Box.createVerticalStrut(10));
+		
+		Box mainBox = Box.createHorizontalBox();
+		mainBox.add(Box.createHorizontalStrut(10));
+		mainBox.add(nameBox);
+		mainBox.add(Box.createHorizontalStrut(10));
+		mainBox.add(styleBox);
+		mainBox.add(Box.createHorizontalStrut(10));
+		mainBox.add(sizeBox);
+		
+		Box vBox = Box.createVerticalBox();
+		vBox.add(Box.createVerticalStrut(10));
+		vBox.add(mainBox);
+		vBox.add(new JLabel("sample"));
+		sampleTextField = new JTextField();
+		sampleTextField.setText("AaBaYyZz");
+		sampleTextField.setEditable(false);
+		vBox.add(sampleTextField);
+		vBox.add(Box.createVerticalStrut(10));
+		
+		Box hBox = Box.createHorizontalBox();
+		okButton = new JButton("OK");
+		okButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				int ss = sizeList.getSelectedIndex();
+				int size[] = {8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72};
+				
+				String ff = (String) fontList.getSelectedValue();
+				
+				if(styleList.getSelectedValue().equals("Bold")) {
+					jta.setFont(new Font(ff,Font.BOLD,size[ss]));
+					line.setFont(new Font(ff,Font.BOLD,size[ss]));
+				}
+				if(styleList.getSelectedValue().equals("Regular")) {
+					jta.setFont(new Font(ff,Font.PLAIN,size[ss]));
+					line.setFont(new Font(ff,Font.PLAIN,size[ss]));
+				}
+				if(styleList.getSelectedValue().equals("Italic")) {
+					jta.setFont(new Font(ff,Font.ITALIC,size[ss]));
+					line.setFont(new Font(ff,Font.ITALIC,size[ss]));
+				}
+				fontDialog.dispose();
+			}
+			
+		});
+		hBox.add(okButton);
+		hBox.add(Box.createHorizontalStrut(20));
+		cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				fontDialog.dispose();
+			}
+		});
+		cancelButton.addActionListener(this);
+		hBox.add(cancelButton);
+		vBox.add(hBox);
+		
+		fontDialog.add(vBox, BorderLayout.CENTER);
 		
 //		line and column number counter
 		jta.addCaretListener(this);  
@@ -240,25 +312,20 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 	}
 	
 	JFileChooser jfc = new JFileChooser();
-	public void saveChanges() {
-		System.out.print(fnameContainer);
-		if(fnameContainer!= null) {
-			jfc.setCurrentDirectory(fnameContainer);
-			jfc.setSelectedFile(fnameContainer);
+	public void save() {
+		if(fnameContainer == null) {
+			saveAs();
 		}
 		else {
-			jfc.setSelectedFile(new File("Untitled.txt"));
-		}
-		
-		int ret = jfc.showSaveDialog(null);
-		if(ret == JFileChooser.APPROVE_OPTION) {
+			File fyl = jfc.getSelectedFile();
 			try {
-				File fyl = jfc.getSelectedFile();
 				saveFile(fyl.getAbsolutePath());
-				this.setTitle(fyl.getName()+" - Notepad");
-				fnameContainer = fyl;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			catch(Exception ets) {}	
+			this.setTitle(fyl.getName()+" - Notepad");
+			fnameContainer = fyl;
 		}
 	}
 	public void saveAs() {
@@ -293,7 +360,7 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 				newFile();
 			}
 			else {
-				saveChanges();
+				save();
 				newFile();
 			}
 		}
@@ -318,7 +385,7 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 			}
 		}
 		else if(e.getActionCommand().equals("Save")) {
-			saveChanges();
+			save();
 		}
 		else if(e.getActionCommand().equals("Save As")) {
 			saveAs();
@@ -458,7 +525,7 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 		if(!jta.getText().equals("")) {
 			DialogBox();
 			if(a==JOptionPane.YES_OPTION) {
-				saveChanges();
+				save();
 				System.exit(0);
 			}
 			else if(a==JOptionPane.NO_OPTION) {
@@ -584,21 +651,16 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 		int ss = sizeList.getSelectedIndex();
 		int size[] = {8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72};
 		
-		int ff = fontList.getSelectedIndex();
-		String fonts[] = {"Arial","Calibri","Cambria","Consolas","Courier","Georgia","Microsoft Sans Serif","Noto Sans","Liberation Sans","Roman","Segoe Print","Segoe UI","Terminal","Times New Roman"};
+		String ff = (String) fontList.getSelectedValue();
 		
 		if(styleList.getSelectedValue().equals("Bold")) {
-			jta.setFont(new Font(fonts[ff],Font.BOLD,size[ss]));
-			line.setFont(new Font(fonts[ff],Font.BOLD,size[ss]));
+			sampleTextField.setFont(new Font(ff,Font.BOLD,size[ss]));
 		}
 		if(styleList.getSelectedValue().equals("Regular")) {
-			jta.setFont(new Font(fonts[ff],Font.PLAIN,size[ss]));
-			line.setFont(new Font(fonts[ff],Font.BOLD,size[ss]));
+			sampleTextField.setFont(new Font(ff,Font.PLAIN,size[ss]));
 		}
 		if(styleList.getSelectedValue().equals("Italic")) {
-			jta.setFont(new Font(fonts[ff],Font.ITALIC,size[ss]));
-			line.setFont(new Font(fonts[ff],Font.BOLD,size[ss]));
+			sampleTextField.setFont(new Font(ff,Font.ITALIC,size[ss]));
 		}
 	}
-
 }
