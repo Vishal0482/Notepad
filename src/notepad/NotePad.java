@@ -15,7 +15,7 @@ import javax.swing.event.*;
 import javax.swing.text.Element;
 import javax.swing.undo.UndoManager;
 
-public class NotePad extends JFrame implements ActionListener, DocumentListener, CaretListener, WindowListener, ItemListener, ListSelectionListener{
+public class NotePad extends JFrame implements ActionListener, DocumentListener, CaretListener, WindowListener, ItemListener, ListSelectionListener, MouseWheelListener{
 	
 	private static final long serialVersionUID = 1L;
 	JTextArea jta = new JTextArea();
@@ -30,9 +30,10 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 	JTextField sampleTextField;
 	JMenuBar jmb;
 	UndoManager uManager = new UndoManager();
+	int defaultFontSize = jta.getFont().getSize();
 
 	NotePad() {
-		Font fnt = new Font("Arial", Font.PLAIN, 15);
+		Font fnt = new Font("Arial", Font.PLAIN, 12);
 		Container con = getContentPane();
 		
 //		Menu bar
@@ -108,6 +109,14 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 		JMenuItem zoomIn = new JMenuItem("Zoom In");
 		JMenuItem zoomOut = new JMenuItem("Zoom Out");
 		JMenuItem zoomRestore = new JMenuItem("Restore Default Zoom");
+		
+		zoomIn.addActionListener(this);
+		zoomOut.addActionListener(this);
+		zoomRestore.addActionListener(this);
+		zoomRestore.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_0, ActionEvent.CTRL_MASK));
+		
+		jta.addMouseWheelListener(this);
+		
 		jmzoom.add(zoomIn);
 		jmzoom.add(zoomOut);
 		jmzoom.add(zoomRestore);
@@ -479,9 +488,31 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 		else if(e.getActionCommand().equals("Fonts..")) {
 			fontDialog.setVisible(true);
 		}	
+		else if(e.getActionCommand().equals("Zoom In")) {
+			zoomIn();
+		}
+		else if(e.getActionCommand().equals("Zoom Out")) {
+			zoomOut();
+		}
+		else if(e.getActionCommand().equals("Restore Default Zoom")) {
+			jta.setFont(new Font(jta.getFont().getFontName(),jta.getFont().getStyle(),defaultFontSize));
+			line.setFont(new Font(jta.getFont().getFontName(),jta.getFont().getStyle(),defaultFontSize));
+		}
 		else if(e.getActionCommand().equals("About Notepad")) {
 			JOptionPane.showMessageDialog(this,"Created by vishal parmar","Notepad", JOptionPane.INFORMATION_MESSAGE);
 		}
+	}
+	
+	public void zoomIn() {
+		int fsize = jta.getFont().getSize();
+		jta.setFont(new Font(jta.getFont().getFontName(),jta.getFont().getStyle(),fsize+2));
+		line.setFont(new Font(jta.getFont().getFontName(),jta.getFont().getStyle(),fsize+2));
+	}
+	
+	public void zoomOut() {
+		int fsize = jta.getFont().getSize();
+		jta.setFont(new Font(jta.getFont().getFontName(),jta.getFont().getStyle(),fsize-2));
+		line.setFont(new Font(jta.getFont().getFontName(),jta.getFont().getStyle(),fsize-2));
 	}
 	
 //	method to open new file
@@ -518,7 +549,7 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 	}
 	int a;
 	public void DialogBox() {
-		a = JOptionPane.showConfirmDialog(jta, "Do yo want to save changes to Untitled?");
+		a = JOptionPane.showConfirmDialog(jta, "Do yo want to save changes to Untitled?", "Notepad", JOptionPane.YES_NO_OPTION);
 	}
 	
 	public void Exiting() {
@@ -529,10 +560,10 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 				System.exit(0);
 			}
 			else if(a==JOptionPane.NO_OPTION) {
-				System.exit(0);
+				
 			}
 			else if(a==JOptionPane.CANCEL_OPTION) {
-				
+			
 			}
 			else if(a==JOptionPane.CLOSED_OPTION ) {
 				
@@ -662,5 +693,16 @@ public class NotePad extends JFrame implements ActionListener, DocumentListener,
 		if(styleList.getSelectedValue().equals("Italic")) {
 			sampleTextField.setFont(new Font(ff,Font.ITALIC,size[ss]));
 		}
+	}
+
+	@Override
+	public void mouseWheelMoved(MouseWheelEvent e) {
+		// TODO Auto-generated method stub
+		if(e.isControlDown()) {
+			int fsize = jta.getFont().getSize();
+			jta.setFont(new Font(jta.getFont().getFontName(),jta.getFont().getStyle(),e.getUnitsToScroll() > 0 ? fsize-2 : fsize+2));
+			line.setFont(new Font(jta.getFont().getFontName(),jta.getFont().getStyle(),e.getUnitsToScroll() > 0 ? fsize-2 : fsize+2));
+		}
+		
 	}
 }
